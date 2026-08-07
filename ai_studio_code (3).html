@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina AI - Youtube Shorts Feed</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .reels-container {
+            height: 100vh;
+            width: 100vw;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .reel-card {
+            height: 100vh;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            position: relative;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            background-color: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .reel-card iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .overlay {
+            position: absolute;
+            bottom: 30px;
+            right: 15px;
+            left: 15px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .prompt-header {
+            font-size: 0.85rem;
+            color: #a855f7;
+            font-weight: bold;
+        }
+
+        .prompt-text {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #e5e7eb;
+            max-height: 70px;
+            overflow-y: auto;
+        }
+
+        /* حاوية الأزرار */
+        .buttons-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .affiliate-btn {
+            flex: 2;
+            text-align: center;
+            background: linear-gradient(135deg, #7c3aed, #c026d3);
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .share-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .share-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="reels-container" id="reelsContainer">
+        <div class="loading" id="loading">جاري تحميل الفيديوهات...</div>
+    </div>
+
+    <script>
+        function getYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // دالة نسخ الرابط المباشر للفيديو
+        function copyVideoLink(videoId) {
+            const directUrl = `${window.location.origin}${window.location.pathname}#${videoId}`;
+            navigator.clipboard.writeText(directUrl).then(() => {
+                alert('✅ تم نسخ رابط الفيديو المباشر إلى الحافظة!');
+            }).catch(() => {
+                alert('حدث خطأ أثناء نسخ الرابط.');
+            });
+        }
+
+        async function loadReels() {
+            const container = document.getElementById('reelsContainer');
+            const loading = document.getElementById('loading');
+
+            try {
+                const response = await fetch('videos.json');
+                if (!response.ok) throw new Error('فشل في تحميل ملف JSON');
+
+                const videosData = await response.json();
+                loading.remove();
+
+                if (videosData.length === 0) {
+                    container.innerHTML = '<div class="loading">لا توجد فيديوهات للعرض</div>';
+                    return;
+                }
+
+                videosData.forEach(item => {
+                    const videoId = getYouTubeId(item.video_url);
+                    if (!videoId) return;
+
+                    const reelCard = document.createElement('div');
+                    reelCard.className = 'reel-card';
+                    reelCard.id = videoId; // تعيين المعرف الفريد للفيديو (ID)
+
+                    const embedUrl = `https://www.youtube.com/embed/${videoId}?loop=1&playlist=${videoId}&modestbranding=1&rel=0`;
+
+                    reelCard.innerHTML = `
+                        <iframe src="${embedUrl}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        
+                        <div class="overlay">
+                            <div class="prompt-header">✨ البرومبت المستخدم:</div>
+                            <div class="prompt-text">${item.prompt}</div>
+                            
+                            <div class="buttons-group">
+                                <a href="${item.affiliate_url}" target="_blank" rel="noopener noreferrer" class="affiliate-btn">
+                                    🚀 تجربة Lumina AI
+                                </a>
+                                <button onclick="copyVideoLink('${videoId}')" class="share-btn">
+                                    🔗 مشاركة
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(reelCard);
+                });
+
+                // 1️⃣ التحقق مما إذا كان هناك هاش (#) في الرابط عند فتح الصفحة للانتقال إليه مباشرة
+                const initialHash = window.location.hash;
+                if (initialHash) {
+                    const targetVideo = document.querySelector(initialHash);
+                    if (targetVideo) {
+                        setTimeout(() => {
+                            targetVideo.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                    }
+                }
+
+                // 2️⃣ إعداد مراقب التمرير (IntersectionObserver) لتحديث رابط المتصفح تلقائياً
+                setupScrollObserver();
+
+            } catch (error) {
+                console.error(error);
+                loading.textContent = 'حدث خطأ أثناء تحميل الملف. يُرجى تشغيل الصفحة عبر سيرفر محلي (Live Server).';
+            }
+        }
+
+        function setupScrollObserver() {
+            const container = document.getElementById('reelsContainer');
+            
+            const observerOptions = {
+                root: container,
+                threshold: 0.6 // يعتبر الفيديو معروضاً إذا كان ظاهراً بنسبة 60% أو أكثر
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const videoId = entry.target.id;
+                        // تحديث رابط المتصفح بدون إعادة تحميل الصفحة أو التأثير على التمرير
+                        history.replaceState(null, null, `#${videoId}`);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reel-card').forEach(card => observer.observe(card));
+        }
+
+        loadReels();
+    </script>
+</body>
+</html>
