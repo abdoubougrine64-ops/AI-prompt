@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI_Prompt1337</title>
+    <title>Lumina AI prompt</title>
     <style>
         * {
             box-sizing: border-box;
@@ -49,10 +49,10 @@
             border: none;
         }
 
-        /* Elevated overlay box */
+        /* Overlay box */
         .overlay {
             position: absolute;
-            bottom: 80px; /* Raised higher up */
+            bottom: 30px;
             left: 15px;
             right: 15px;
             z-index: 10;
@@ -110,128 +110,34 @@
             color: #fff;
         }
 
-        /* Affiliate Button */
+        /* Button group layout */
+        .buttons-group {
+            display: flex;
+            gap: 8px;
+        }
+
         .affiliate-btn {
-            display: block;
+            flex: 2;
             text-align: center;
             background: linear-gradient(135deg, #7c3aed, #c026d3);
             color: #fff;
             text-decoration: none;
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
         }
 
-        .affiliate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(192, 38, 211, 0.6);
-        }
-
-        /* Loading indicator */
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.2rem;
-            color: #aaa;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="reels-container" id="reelsContainer">
-        <div class="loading" id="loading">Loading videos...</div>
-    </div>
-
-    <script>
-        // Extract YouTube ID from various URL formats
-        function getYouTubeId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
-
-        // Fetch JSON and build the UI
-        async function loadReels() {
-            const container = document.getElementById('reelsContainer');
-            const loading = document.getElementById('loading');
-
-            try {
-                const response = await fetch('videos.json');
-                if (!response.ok) throw new Error('Failed to load JSON file');
-
-                const videosData = await response.json();
-                
-                loading.remove();
-
-                if (videosData.length === 0) {
-                    container.innerHTML = '<div class="loading">No videos found.</div>';
-                    return;
-                }
-
-                videosData.forEach(item => {
-                    const videoId = getYouTubeId(item.video_url);
-                    if (!videoId) return;
-
-                    const reelCard = document.createElement('div');
-                    reelCard.className = 'reel-card';
-
-                    const embedUrl = `https://www.youtube.com/embed/${videoId}?loop=1&playlist=${videoId}&modestbranding=1&rel=0`;
-
-                    reelCard.innerHTML = `
-                        <iframe src="${embedUrl}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        
-                        <div class="overlay">
-                            <div class="prompt-header">
-                                <span>✨ AI Prompt</span>
-                                <button class="copy-btn">📋 Copy</button>
-                            </div>
-                            <div class="prompt-text">${item.prompt}</div>
-                            <a href="${item.affiliate_url}" target="_blank" rel="noopener noreferrer" class="affiliate-btn">
-                                🚀 Create with Lumina AI
-                            </a>
-                        </div>
-                    `;
-
-                    container.appendChild(reelCard);
-                });
-
-            } catch (error) {
-                console.error(error);
-                loading.textContent = 'Error loading videos. Make sure to run on a local server.';
-            }
-        }
-
-        // Global Copy Prompt Listener
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('copy-btn') || e.target.closest('.copy-btn')) {
-                const btn = e.target.classList.contains('copy-btn') ? e.target : e.target.closest('.copy-btn');
-                const promptText = btn.closest('.overlay').querySelector('.prompt-text').innerText;
-
-                navigator.clipboard.writeText(promptText).then(() => {
-                    const originalHTML = btn.innerHTML;
-                    btn.innerHTML = '✅ Copied!';
-                    btn.classList.add('copied');
-
-                    setTimeout(() => {
-                        btn.innerHTML = originalHTML;
-                        btn.classList.remove('copied');
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Failed to copy: ', err);
-                });
-            }
-        });
-
-        // Initialize
-        loadReels();
-    </script>
-</body>
-</html>            font-size: 0.85rem;
+        .share-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.85rem;
             cursor: pointer;
             transition: background 0.3s;
         }
@@ -253,39 +159,41 @@
 <body>
 
     <div class="reels-container" id="reelsContainer">
-        <div class="loading" id="loading">جاري تحميل الفيديوهات...</div>
+        <div class="loading" id="loading">Loading videos...</div>
     </div>
 
     <script>
+        // Extract YouTube Video ID from URL
         function getYouTubeId(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        // دالة نسخ الرابط المباشر للفيديو
+        // Copy direct video link to clipboard
         function copyVideoLink(videoId) {
             const directUrl = `${window.location.origin}${window.location.pathname}#${videoId}`;
             navigator.clipboard.writeText(directUrl).then(() => {
-                alert('✅ تم نسخ رابط الفيديو المباشر إلى الحافظة!');
+                alert('✅ Video link copied to clipboard!');
             }).catch(() => {
-                alert('حدث خطأ أثناء نسخ الرابط.');
+                alert('Failed to copy video link.');
             });
         }
 
+        // Fetch JSON and render reels
         async function loadReels() {
             const container = document.getElementById('reelsContainer');
             const loading = document.getElementById('loading');
 
             try {
                 const response = await fetch('videos.json');
-                if (!response.ok) throw new Error('فشل في تحميل ملف JSON');
+                if (!response.ok) throw new Error('Failed to load JSON file');
 
                 const videosData = await response.json();
                 loading.remove();
 
                 if (videosData.length === 0) {
-                    container.innerHTML = '<div class="loading">لا توجد فيديوهات للعرض</div>';
+                    container.innerHTML = '<div class="loading">No videos available.</div>';
                     return;
                 }
 
@@ -295,7 +203,7 @@
 
                     const reelCard = document.createElement('div');
                     reelCard.className = 'reel-card';
-                    reelCard.id = videoId; // تعيين المعرف الفريد للفيديو (ID)
+                    reelCard.id = videoId;
 
                     const embedUrl = `https://www.youtube.com/embed/${videoId}?loop=1&playlist=${videoId}&modestbranding=1&rel=0`;
 
@@ -303,15 +211,18 @@
                         <iframe src="${embedUrl}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                         
                         <div class="overlay">
-                            <div class="prompt-header">✨ البرومبت المستخدم:</div>
+                            <div class="prompt-header">
+                                <span>✨ AI Prompt</span>
+                                <button class="copy-btn">📋 Copy</button>
+                            </div>
                             <div class="prompt-text">${item.prompt}</div>
                             
                             <div class="buttons-group">
                                 <a href="${item.affiliate_url}" target="_blank" rel="noopener noreferrer" class="affiliate-btn">
-                                    🚀 تجربة Lumina AI
+                                    🚀 Try Lumina AI
                                 </a>
                                 <button onclick="copyVideoLink('${videoId}')" class="share-btn">
-                                    🔗 مشاركة
+                                    🔗 Share
                                 </button>
                             </div>
                         </div>
@@ -320,7 +231,7 @@
                     container.appendChild(reelCard);
                 });
 
-                // 1️⃣ التحقق مما إذا كان هناك هاش (#) في الرابط عند فتح الصفحة للانتقال إليه مباشرة
+                // Scroll to target video if URL contains hash (#)
                 const initialHash = window.location.hash;
                 if (initialHash) {
                     const targetVideo = document.querySelector(initialHash);
@@ -331,28 +242,28 @@
                     }
                 }
 
-                // 2️⃣ إعداد مراقب التمرير (IntersectionObserver) لتحديث رابط المتصفح تلقائياً
+                // Setup intersection observer to update URL hash on scroll
                 setupScrollObserver();
 
             } catch (error) {
                 console.error(error);
-                loading.textContent = 'حدث خطأ أثناء تحميل الملف. يُرجى تشغيل الصفحة عبر سيرفر محلي (Live Server).';
+                loading.textContent = 'Error loading videos. Please check your JSON file or run on a local server.';
             }
         }
 
+        // Automatically update browser URL hash as user scrolls
         function setupScrollObserver() {
             const container = document.getElementById('reelsContainer');
             
             const observerOptions = {
                 root: container,
-                threshold: 0.6 // يعتبر الفيديو معروضاً إذا كان ظاهراً بنسبة 60% أو أكثر
+                threshold: 0.6
             };
 
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const videoId = entry.target.id;
-                        // تحديث رابط المتصفح بدون إعادة تحميل الصفحة أو التأثير على التمرير
                         history.replaceState(null, null, `#${videoId}`);
                     }
                 });
@@ -360,6 +271,27 @@
 
             document.querySelectorAll('.reel-card').forEach(card => observer.observe(card));
         }
+
+        // Prompt text copy handler
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('copy-btn') || e.target.closest('.copy-btn')) {
+                const btn = e.target.classList.contains('copy-btn') ? e.target : e.target.closest('.copy-btn');
+                const promptText = btn.closest('.overlay').querySelector('.prompt-text').innerText;
+
+                navigator.clipboard.writeText(promptText).then(() => {
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '✅ Copied!';
+                    btn.classList.add('copied');
+
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            }
+        });
 
         loadReels();
     </script>
