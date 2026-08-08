@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumina AI - Youtube Shorts Feed</title>
+    <title>AI_Prompt1337</title>
     <style>
         * {
             box-sizing: border-box;
@@ -18,6 +18,7 @@
             overflow: hidden;
         }
 
+        /* Snap scrolling container */
         .reels-container {
             height: 100vh;
             width: 100vw;
@@ -26,6 +27,7 @@
             scroll-behavior: smooth;
         }
 
+        /* Individual reel card */
         .reel-card {
             height: 100vh;
             width: 100%;
@@ -40,17 +42,19 @@
             align-items: center;
         }
 
+        /* YouTube Iframe styling */
         .reel-card iframe {
             width: 100%;
             height: 100%;
             border: none;
         }
 
+        /* Elevated overlay box */
         .overlay {
             position: absolute;
-            bottom: 30px;
-            right: 15px;
+            bottom: 80px; /* Raised higher up */
             left: 15px;
+            right: 15px;
             z-index: 10;
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(8px);
@@ -65,8 +69,11 @@
 
         .prompt-header {
             font-size: 0.85rem;
-            color: #a855f7;
+            color: #c084fc;
             font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .prompt-text {
@@ -75,36 +82,156 @@
             color: #e5e7eb;
             max-height: 70px;
             overflow-y: auto;
+            text-align: left;
         }
 
-        /* حاوية الأزرار */
-        .buttons-group {
+        /* Copy Button Styling */
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 4px;
         }
 
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .copy-btn.copied {
+            background: #22c55e;
+            border-color: #22c55e;
+            color: #fff;
+        }
+
+        /* Affiliate Button */
         .affiliate-btn {
-            flex: 2;
+            display: block;
             text-align: center;
             background: linear-gradient(135deg, #7c3aed, #c026d3);
             color: #fff;
             text-decoration: none;
-            padding: 10px 12px;
+            padding: 12px 15px;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
         }
 
-        .share-btn {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.85rem;
+        .affiliate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(192, 38, 211, 0.6);
+        }
+
+        /* Loading indicator */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="reels-container" id="reelsContainer">
+        <div class="loading" id="loading">Loading videos...</div>
+    </div>
+
+    <script>
+        // Extract YouTube ID from various URL formats
+        function getYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // Fetch JSON and build the UI
+        async function loadReels() {
+            const container = document.getElementById('reelsContainer');
+            const loading = document.getElementById('loading');
+
+            try {
+                const response = await fetch('videos.json');
+                if (!response.ok) throw new Error('Failed to load JSON file');
+
+                const videosData = await response.json();
+                
+                loading.remove();
+
+                if (videosData.length === 0) {
+                    container.innerHTML = '<div class="loading">No videos found.</div>';
+                    return;
+                }
+
+                videosData.forEach(item => {
+                    const videoId = getYouTubeId(item.video_url);
+                    if (!videoId) return;
+
+                    const reelCard = document.createElement('div');
+                    reelCard.className = 'reel-card';
+
+                    const embedUrl = `https://www.youtube.com/embed/${videoId}?loop=1&playlist=${videoId}&modestbranding=1&rel=0`;
+
+                    reelCard.innerHTML = `
+                        <iframe src="${embedUrl}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        
+                        <div class="overlay">
+                            <div class="prompt-header">
+                                <span>✨ AI Prompt</span>
+                                <button class="copy-btn">📋 Copy</button>
+                            </div>
+                            <div class="prompt-text">${item.prompt}</div>
+                            <a href="${item.affiliate_url}" target="_blank" rel="noopener noreferrer" class="affiliate-btn">
+                                🚀 Create with Lumina AI
+                            </a>
+                        </div>
+                    `;
+
+                    container.appendChild(reelCard);
+                });
+
+            } catch (error) {
+                console.error(error);
+                loading.textContent = 'Error loading videos. Make sure to run on a local server.';
+            }
+        }
+
+        // Global Copy Prompt Listener
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('copy-btn') || e.target.closest('.copy-btn')) {
+                const btn = e.target.classList.contains('copy-btn') ? e.target : e.target.closest('.copy-btn');
+                const promptText = btn.closest('.overlay').querySelector('.prompt-text').innerText;
+
+                navigator.clipboard.writeText(promptText).then(() => {
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '✅ Copied!';
+                    btn.classList.add('copied');
+
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            }
+        });
+
+        // Initialize
+        loadReels();
+    </script>
+</body>
+</html>            font-size: 0.85rem;
             cursor: pointer;
             transition: background 0.3s;
         }
